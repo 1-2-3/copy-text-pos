@@ -7,6 +7,14 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-24
+
+### Fixed
+
+- Resolve JetBrains **Copy Reference** paths that are relative to a Java/Kotlin
+  source root inside a nested Maven/Gradle module, such as
+  `com/example/Foo.java:42`, instead of only trying the project root.
+
 ## [0.1.6] - 2026-10-24
 
 ### Fixed

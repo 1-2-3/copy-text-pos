@@ -214,7 +214,7 @@ UIA 可以提供控件树、名称、值、选中模式、`TextPattern` 等。�
 辅助功能桥接。即使能数出 UI 文本行，代码折叠、自动换行、Markdown 渲染也会让
 它和源码行号不一致。而路径问题仍然没有解决。
 
-因此 v0.1.6 采用**编辑器原生元数据 + 剪贴板选区 + 源码搜索**的混合方案，并为
+因此 v0.1.7 采用**编辑器原生元数据 + 剪贴板选区 + 源码搜索**的混合方案，并为
 VS Code 系列提供精确的桥接扩展。未来也许会用 UIA 做很窄的辅助判断（例如当前
 焦点是编辑器还是内置终端），但不会把它作为主数据源。
 
@@ -314,7 +314,7 @@ VS Code 系列提供精确的桥接扩展。未来也许会用 UIA 做很窄的�
 ```powershell
 git clone <本仓库地址>
 cd copy-text-pos
-.\build.ps1 -Version 0.1.6 -Package
+.\build.ps1 -Version 0.1.7 -Package
 ```
 
 输出：
@@ -322,13 +322,13 @@ cd copy-text-pos
 ```text
 bin\copy-text-pos.exe
 bin\copy-text-pos.exe.sha256
-bin\copy-text-pos-0.1.6-win-x64.zip
+bin\copy-text-pos-0.1.7-win-x64.zip
 ```
 
 带控制台窗口的开发构建（便于调试）：
 
 ```powershell
-.\build.ps1 -Version 0.1.6 -Console -Output bin\copy-text-pos-dev.exe
+.\build.ps1 -Version 0.1.7 -Console -Output bin\copy-text-pos-dev.exe
 ```
 
 测试：

@@ -79,8 +79,10 @@ Windows 没有统一的 API 可以返回“当前选区对应的源文件和源�
 RustRover、PhpStorm、RubyMine 等。
 
 - **路径：** 向前台 IDE 发送内置的 **Copy Reference** 动作
-  （`Ctrl+Alt+Shift+C`），再从剪贴板读取引用。绝对引用直接使用；相对引用
-  （如 `src/main/java/Foo.java:42`）会结合最近项目根目录和搜索根目录解析。
+  （`Ctrl+Alt+Shift+C`），再从剪贴板读取引用。绝对引用直接使用；包相对引用
+  （如 `com/example/Foo.java:42`）会结合项目根目录、标准源码根目录
+  （`src/main/java`、`src/test/java` 及 Kotlin 对应目录）和多级 Maven/Gradle
+  模块解析。
 - **范围：** 引用给出起始行；应用在文件中搜索选中文本，并选择离该锚点最近的
   匹配。若磁盘内容已变化，则按选中文本行数估算结束行。
 - **无需 IDE 插件。**

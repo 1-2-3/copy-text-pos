@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -57,21 +58,62 @@ func ParseReference(text string, projectRoots, searchRoots []string) (PathHint, 
 	roots := append([]string(nil), projectRoots...)
 	roots = append(roots, searchRoots...)
 	seen := map[string]bool{}
+	deadline := time.Now().Add(900 * time.Millisecond)
 	for _, root := range roots {
 		if root == "" {
 			continue
 		}
-		candidate := filepath.Clean(filepath.Join(root, rawPath))
-		key := strings.ToLower(candidate)
-		if seen[key] {
-			continue
+		for _, candidate := range referencePathCandidates(root, rawPath) {
+			key := strings.ToLower(candidate)
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+			if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+				return PathHint{Path: candidate, AnchorLine: anchor, Origin: "jetbrains-reference"}, true
+			}
 		}
-		seen[key] = true
-		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
-			return PathHint{Path: candidate, AnchorLine: anchor, Origin: "jetbrains-reference"}, true
+		// Kotlin/Java references are relative to a source root, often in a
+		// nested module rather than the project root. Fall back to a bounded
+		// filename scan and require the package-relative suffix to match.
+		base := filepath.Base(rawPath)
+		found := findFilesNamed(root, base, deadline, 64)
+		for _, candidate := range found.Paths {
+			rel, err := filepath.Rel(root, candidate)
+			if err != nil {
+				continue
+			}
+			rel = filepath.ToSlash(rel)
+			for _, suffix := range referenceSuffixes(rawPath) {
+				if strings.HasSuffix(strings.ToLower(rel), strings.ToLower(suffix)) {
+					return PathHint{Path: candidate, AnchorLine: anchor, Origin: "jetbrains-reference"}, true
+				}
+			}
 		}
 	}
 	return PathHint{}, false
+}
+
+func referencePathCandidates(root, rawPath string) []string {
+	clean := filepath.Clean(rawPath)
+	return []string{
+		filepath.Join(root, clean),
+		filepath.Join(root, "src", "main", "java", clean),
+		filepath.Join(root, "src", "test", "java", clean),
+		filepath.Join(root, "src", "main", "kotlin", clean),
+		filepath.Join(root, "src", "test", "kotlin", clean),
+	}
+}
+
+func referenceSuffixes(rawPath string) []string {
+	clean := filepath.ToSlash(filepath.Clean(rawPath))
+	return []string{
+		"/" + clean,
+		"/src/main/java/" + clean,
+		"/src/test/java/" + clean,
+		"/src/main/kotlin/" + clean,
+		"/src/test/kotlin/" + clean,
+	}
 }
 
 // JetBrainsTitleProject returns the project name from titles such as

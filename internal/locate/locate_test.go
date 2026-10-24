@@ -132,6 +132,18 @@ func TestParseReference(t *testing.T) {
 	if _, ok := ParseReference(`com.example.Foo:12`, []string{dir}, nil); ok {
 		t.Fatal("class reference should not resolve to a file")
 	}
+
+	nested := filepath.Join(dir, "product-plugins", "jobs-demo", "src", "main", "java", "com", "example", "JobsDemoPlugin.java")
+	if err := os.MkdirAll(filepath.Dir(nested), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(nested, []byte("class JobsDemoPlugin {}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	hint, ok = ParseReference(`com/example/JobsDemoPlugin.java:7`, []string{dir}, nil)
+	if !ok || hint.AnchorLine != 7 || !strings.EqualFold(hint.Path, nested) {
+		t.Fatalf("nested hint=%+v ok=%v", hint, ok)
+	}
 }
 
 func TestBridgeContext(t *testing.T) {

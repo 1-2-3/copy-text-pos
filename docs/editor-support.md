@@ -96,9 +96,10 @@ Rider, RustRover, PhpStorm, RubyMine and related products.
 
 - **Path:** the app sends the stock **Copy Reference** action
   (`Ctrl+Alt+Shift+C`) to the focused IDE, then reads the reference from the
-  clipboard. Absolute references are used directly; relative references such as
-  `src/main/java/Foo.java:42` are resolved against recent project roots and
-  search roots.
+  clipboard. Absolute references are used directly; package-relative references
+  such as `com/example/Foo.java:42` are resolved against the project root,
+  standard source roots (`src/main/java`, `src/test/java`, Kotlin equivalents),
+  and nested Maven/Gradle modules.
 - **Range:** the reference gives the start line. The app then searches the
   selected text in the file and chooses the occurrence nearest that anchor.
   If the file changed on disk, the end line is estimated from the number of

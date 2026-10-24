@@ -239,7 +239,7 @@ IDEs use their own accessibility bridge. Counting UI text lines is not the same
 as counting source lines when the editor folds code, wraps lines, or renders
 Markdown. And UIA still does not tell us the file path.
 
-So v0.1.6 uses a hybrid of **editor-native metadata + clipboard selection +
+So v0.1.7 uses a hybrid of **editor-native metadata + clipboard selection +
 source search**, with an optional exact bridge for VS Code derivatives. UIA
 might be added later for narrow jobs such as classifying the focused control
 (editor vs. integrated terminal), but it is not a good foundation for the whole
@@ -347,7 +347,7 @@ Requirements:
 ```powershell
 git clone <this repository>
 cd copy-text-pos
-.\build.ps1 -Version 0.1.6 -Package
+.\build.ps1 -Version 0.1.7 -Package
 ```
 
 Outputs:
@@ -355,13 +355,13 @@ Outputs:
 ```text
 bin\copy-text-pos.exe
 bin\copy-text-pos.exe.sha256
-bin\copy-text-pos-0.1.6-win-x64.zip
+bin\copy-text-pos-0.1.7-win-x64.zip
 ```
 
 For a build with a console window (useful for debugging):
 
 ```powershell
-.\build.ps1 -Version 0.1.6 -Console -Output bin\copy-text-pos-dev.exe
+.\build.ps1 -Version 0.1.7 -Console -Output bin\copy-text-pos-dev.exe
 ```
 
 Tests:
