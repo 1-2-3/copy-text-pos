@@ -7,6 +7,16 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-24
+
+### Fixed
+
+- Match Markdown table selections against the source table. Typora copies
+  tables with padded columns and a reformatted separator row; separator rows are
+  now ignored on both sides and column padding is normalized.
+- Added regression coverage for copied tables with and without a separator row,
+  including partial-row selections.
+
 ## [0.1.1] - 2026-10-24
 
 ### Fixed

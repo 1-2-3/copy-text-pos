@@ -118,7 +118,9 @@ Android Studio 的标题通常类似 `ProjectName – What's New`；第一段用
 - **路径：** 读取 Typora 的 `%APPDATA%\Typora\history.data` 最近文件列表，按
   标题中的文档名匹配。Windows 上该文件通常为十六进制编码的 JSON，应用会同时
   兼容十六进制与明文 JSON。
-- **范围：** 在 Markdown 源码中搜索选中文本，同样有渲染 Markdown 限制。
+- **范围：** 在 Markdown 源码中搜索选中文本，同样有渲染 Markdown 限制。Typora
+  复制表格时会输出带列对齐空格的 Markdown；应用会忽略表格分隔行并归一化列宽，
+  因此整表或部分行选区都能映射回源码行号。
 - **兜底：** 把文档目录加入 **搜索根目录**。
 - **未保存文档：** 请先保存；未保存的 Typora 缓冲区没有稳定的源码路径可供搜索。
 

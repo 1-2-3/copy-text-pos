@@ -142,7 +142,13 @@ func lineMatches(fileLines, selectedRaw []string, markdown bool) []Match {
 	}
 	selected := make([]string, 0, len(selectedRaw))
 	for _, line := range selectedRaw {
-		selected = append(selected, normalizeLine(line, markdown, true))
+		// Rendered Markdown tables may or may not include the separator row in
+		// the copied text. It carries no user-visible content, so ignore it on
+		// both sides and keep the source line mapping separately.
+		if markdown && isMarkdownTableSeparator(line) {
+			continue
+		}
+		selected = append(selected, normalizeLine(line, markdown))
 	}
 	// Drop leading/trailing blank lines created by the clipboard.
 	for len(selected) > 0 && selected[0] == "" {
@@ -151,13 +157,26 @@ func lineMatches(fileLines, selectedRaw []string, markdown bool) []Match {
 	for len(selected) > 0 && selected[len(selected)-1] == "" {
 		selected = selected[:len(selected)-1]
 	}
-	if len(selected) == 0 || len(selected) > len(fileLines) {
+	if len(selected) == 0 {
 		return nil
 	}
 
-	normalizedFile := make([]string, len(fileLines))
+	type sourceLine struct {
+		text string
+		line int
+	}
+	normalizedFile := make([]sourceLine, 0, len(fileLines))
 	for i, line := range fileLines {
-		normalizedFile[i] = normalizeLine(line, markdown, false)
+		if markdown && isMarkdownTableSeparator(line) {
+			continue
+		}
+		normalizedFile = append(normalizedFile, sourceLine{
+			text: normalizeLine(line, markdown),
+			line: i + 1,
+		})
+	}
+	if len(selected) > len(normalizedFile) {
+		return nil
 	}
 
 	mode := ModeWhitespace
@@ -168,15 +187,15 @@ func lineMatches(fileLines, selectedRaw []string, markdown bool) []Match {
 	for i := 0; i+len(selected) <= len(normalizedFile) && len(matches) < maxMatches; i++ {
 		ok := true
 		for j := range selected {
-			if normalizedFile[i+j] != selected[j] {
+			if normalizedFile[i+j].text != selected[j] {
 				ok = false
 				break
 			}
 		}
 		if ok {
 			matches = append(matches, Match{
-				StartLine: i + 1,
-				EndLine:   i + len(selected),
+				StartLine: normalizedFile[i].line,
+				EndLine:   normalizedFile[i+len(selected)-1].line,
 				Mode:      mode,
 			})
 		}
@@ -184,16 +203,35 @@ func lineMatches(fileLines, selectedRaw []string, markdown bool) []Match {
 	return matches
 }
 
-func normalizeLine(line string, markdown, selected bool) string {
+// isMarkdownTableSeparator identifies rows such as |---|:---:|---|. Typora
+// reformats these with padding when it copies a table, so the exact text
+// differs from the source and must not participate in line matching.
+func isMarkdownTableSeparator(line string) bool {
+	line = strings.TrimSpace(line)
+	if line == "" || !strings.Contains(line, "|") {
+		return false
+	}
+	hasDash := false
+	for _, r := range line {
+		switch r {
+		case '|', ' ', '\t':
+		case '-':
+			hasDash = true
+		case ':':
+		default:
+			return false
+		}
+	}
+	return hasDash
+}
+
+func normalizeLine(line string, markdown bool) string {
 	line = strings.ReplaceAll(line, "\t", " ")
 	if markdown {
 		line = stripMarkdown(line)
 	}
 	line = strings.TrimSpace(line)
 	line = strings.Join(strings.Fields(line), " ")
-	if selected {
-		return line
-	}
 	return line
 }
 

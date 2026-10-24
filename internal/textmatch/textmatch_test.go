@@ -69,6 +69,54 @@ func TestMarkdownFallback(t *testing.T) {
 	}
 }
 
+func TestMarkdownTableCopy(t *testing.T) {
+	content := "# 支持\n\n" +
+		"| 级别 | 路径 | 行号范围 |\n" +
+		"|---|---|---|\n" +
+		"| **精确** | 来自编辑器桥接或标题中的完整路径 | 来自桥接，或无歧义的标题元数据 |\n" +
+		"| **良好** | 来自编辑器自有元数据 | 通过选中文本搜索推断 |\n\n" +
+		"后续段落。\n"
+
+	// This is the shape Typora puts on the clipboard for a rendered table:
+	// padded columns, preserved bold markers, and a padded separator row.
+	selection := "| 级别       | 路径                             | 行号范围                       |\n" +
+		"| ---------- | -------------------------------- | ------------------------------ |\n" +
+		"| **精确**   | 来自编辑器桥接或标题中的完整路径 | 来自桥接，或无歧义的标题元数据 |\n" +
+		"| **良好**   | 来自编辑器自有元数据             | 通过选中文本搜索推断           |"
+
+	m, err := FindSingle(content, selection, Options{Markdown: true}, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.StartLine != 3 || m.EndLine != 6 || m.Mode != ModeMarkdown {
+		t.Fatalf("unexpected match: %+v", m)
+	}
+
+	// Some editors omit the separator row from copied text. The range should
+	// still cover the entire source table including the separator.
+	withoutSeparator := "| 级别 | 路径 | 行号范围 |\n" +
+		"| **精确** | 来自编辑器桥接或标题中的完整路径 | 来自桥接，或无歧义的标题元数据 |\n" +
+		"| **良好** | 来自编辑器自有元数据 | 通过选中文本搜索推断 |"
+	m, err = FindSingle(content, withoutSeparator, Options{Markdown: true}, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.StartLine != 3 || m.EndLine != 6 {
+		t.Fatalf("unexpected match without separator: %+v", m)
+	}
+
+	// Selecting only data rows starts at the first row and ends at the last.
+	rowsOnly := "| **精确**   | 来自编辑器桥接或标题中的完整路径 | 来自桥接，或无歧义的标题元数据 |\n" +
+		"| **良好**   | 来自编辑器自有元数据             | 通过选中文本搜索推断           |"
+	m, err = FindSingle(content, rowsOnly, Options{Markdown: true}, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.StartLine != 5 || m.EndLine != 6 {
+		t.Fatalf("unexpected rows-only match: %+v", m)
+	}
+}
+
 func TestNotFound(t *testing.T) {
 	if _, err := FindAll("abc\ndef\n", "not present", Options{}); err == nil {
 		t.Fatal("expected error")

@@ -144,7 +144,9 @@ file path.
   and matches the document name in the title. On Windows this file is usually a
   hex-encoded JSON blob; both hex and plain JSON are decoded.
 - **Range:** selected text is searched in the Markdown source, with the same
-  rendered-Markdown caveat as Obsidian.
+  rendered-Markdown caveat as Obsidian. Typora copies tables as padded Markdown;
+  table separator rows and column padding are normalized, so whole-table and
+  row-range selections map back to their source lines.
 - **Fallback:** add the document folder to **Search roots**.
 - **Unsaved documents:** save first; an unsaved Typora buffer has no stable
   source path for the fallback search.
