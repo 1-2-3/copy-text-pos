@@ -101,8 +101,10 @@ Android Studio 的标题通常类似 `ProjectName – What's New`；第一段用
 
 ## Obsidian
 
-- **路径：** 读取 `%APPDATA%\obsidian\obsidian.json` 中注册的 Vault，再按标题
-  中的笔记名在对应 Vault 中搜索。
+- **路径：** 读取 `%APPDATA%\obsidian\obsidian.json` 中注册的 Vault，并读取
+  Vault 的 `.obsidian\workspace.json`，把当前打开的标签页映射到真实文件路径；
+  即使标签标题显示的是 frontmatter 别名而不是文件名也能定位。最后才按笔记名
+  搜索。
 - **范围：** 在 Markdown 源码中搜索选中文本。纯文本和源码模式选区通常准确。
 - **渲染 Markdown 限制：** 在阅读视图/实时预览中选中的渲染文字，复制后可能不含
   `**`、链接、列表标记或 HTML。匹配器带有 Markdown 感知兜底，但表格、嵌入内容

@@ -124,8 +124,10 @@ file path.
 
 ## Obsidian
 
-- **Path:** reads `%APPDATA%\obsidian\obsidian.json` to find registered vaults,
-  then searches the matching vault for the note name in the window title.
+- **Path:** reads `%APPDATA%\obsidian\obsidian.json` to find registered vaults.
+  It also reads the vault's `.obsidian\workspace.json` to map open tabs to real
+  paths, which handles tabs whose title is a frontmatter alias instead of the
+  filename. It then falls back to searching for the note name.
 - **Range:** selected text is searched in the Markdown source. This is accurate
   for plain text and source-mode selections.
 - **Rendered Markdown caveat:** if you select rendered text in reading/live

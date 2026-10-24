@@ -127,6 +127,11 @@ func (r *Resolver) addObsidianCandidates(set *candidateSet, w Window, deadline t
 		if info, err := os.Stat(vault.Path); err != nil || !info.IsDir() {
 			continue
 		}
+		// Titles often show an alias instead of the on-disk filename. The open
+		// workspace state gives the real path without scanning the whole vault.
+		for _, path := range ObsidianWorkspaceFiles(vault.Path) {
+			set.add(path, "obsidian-workspace", 115, TitleAnchor(w.Title))
+		}
 		result := findFilesNamed(vault.Path, note, deadline, 8)
 		for _, path := range result.Paths {
 			set.add(path, "obsidian-vault", 100, TitleAnchor(w.Title))

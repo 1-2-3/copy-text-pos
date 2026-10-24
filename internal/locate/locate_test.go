@@ -13,6 +13,50 @@ import (
 	"copytextpos/internal/winapi"
 )
 
+func TestObsidianVersionedTitle(t *testing.T) {
+	title := "血透医保控费采集终端方案和硬件需求 - obsi-doc - Obsidian 1.14.5"
+	if got := StripAppSuffix(title); got != "血透医保控费采集终端方案和硬件需求 - obsi-doc" {
+		t.Fatalf("StripAppSuffix=%q", got)
+	}
+	note, vault := obsidianNoteAndVault(title)
+	if note != "血透医保控费采集终端方案和硬件需求" || vault != "obsi-doc" {
+		t.Fatalf("note=%q vault=%q", note, vault)
+	}
+}
+
+func TestObsidianWorkspaceFiles(t *testing.T) {
+	root := t.TempDir()
+	data := []byte(`{
+		"main": {
+			"type": "tabs",
+			"currentTab": 1,
+			"children": [
+				{"type":"leaf","state":{"type":"markdown","state":{"file":"notes/old.md"}}},
+				{"type":"leaf","state":{"type":"markdown","state":{"file":"notes/current.md"}}},
+				{"type":"leaf","state":{"type":"outline","state":{"file":"notes/current.md"}}}
+			]
+		}
+	}`)
+	paths := parseObsidianWorkspace(data, root)
+	if len(paths) != 2 {
+		t.Fatalf("paths=%#v", paths)
+	}
+	if paths[0] != filepath.Join(root, "notes", "current.md") {
+		t.Fatalf("current tab should come first: %#v", paths)
+	}
+	if paths[1] != filepath.Join(root, "notes", "old.md") {
+		t.Fatalf("unexpected paths: %#v", paths)
+	}
+}
+
+func TestObsidianWorkspaceRejectsTraversal(t *testing.T) {
+	root := t.TempDir()
+	data := []byte(`{"main":{"type":"leaf","state":{"type":"markdown","state":{"file":"../secret.md"}}}}`)
+	if paths := parseObsidianWorkspace(data, root); len(paths) != 0 {
+		t.Fatalf("traversal path accepted: %#v", paths)
+	}
+}
+
 func TestParseVSCodeTitle(t *testing.T) {
 	cases := []struct {
 		title     string

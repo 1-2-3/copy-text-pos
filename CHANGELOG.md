@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-10-24
+
+### Fixed
+
+- Obsidian window titles ending in a version suffix such as
+  `Obsidian 1.14.5` no longer treat `Obsidian 1.14.5` as the vault name.
+- Resolve Obsidian notes whose tab title is a frontmatter alias by reading the
+  active vault's `.obsidian\workspace.json` and mapping open tabs to real files.
+
 ## [0.1.5] - 2026-10-24
 
 ### Changed

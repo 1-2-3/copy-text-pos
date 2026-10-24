@@ -49,19 +49,46 @@ func StripAppSuffix(title string) string {
 	segments := TitleSegments(title)
 	for len(segments) > 0 {
 		last := strings.TrimSpace(segments[len(segments)-1])
-		matched := false
-		for _, suffix := range appSuffixes {
-			if strings.EqualFold(last, suffix) {
-				segments = segments[:len(segments)-1]
-				matched = true
-				break
-			}
-		}
-		if !matched {
+		if !isAppSuffix(last) {
 			break
 		}
+		segments = segments[:len(segments)-1]
 	}
 	return strings.Join(segments, " - ")
+}
+
+// isAppSuffix also accepts versioned title suffixes such as
+// "Obsidian 1.14.5" or "Sublime Text 4".
+func isAppSuffix(segment string) bool {
+	for _, suffix := range appSuffixes {
+		if strings.EqualFold(segment, suffix) {
+			return true
+		}
+		if len(segment) <= len(suffix) || !strings.EqualFold(segment[:len(suffix)], suffix) {
+			continue
+		}
+		if segment[len(suffix)] != ' ' {
+			continue
+		}
+		if looksLikeVersion(strings.TrimSpace(segment[len(suffix):])) {
+			return true
+		}
+	}
+	return false
+}
+
+func looksLikeVersion(tail string) bool {
+	tail = strings.TrimSpace(strings.TrimPrefix(strings.ToLower(tail), "v"))
+	if tail == "" || tail[0] < '0' || tail[0] > '9' {
+		return false
+	}
+	for _, r := range tail {
+		if (r >= '0' && r <= '9') || r == '.' || r == '-' || r == '(' || r == ')' {
+			continue
+		}
+		return false
+	}
+	return true
 }
 
 // CleanTitlePart removes modification markers and decorative bullets.
