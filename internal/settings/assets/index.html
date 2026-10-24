@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Copy Text Pos · Settings</title>
+  <link rel="icon" href="assets/icon.png" type="image/png">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <div class="page-glow page-glow-a"></div>
+  <div class="page-glow page-glow-b"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/icon.png" width="44" height="44" alt="">
+      <div class="brand-copy">
+        <div class="brand-name">Copy Text Pos</div>
+        <div class="brand-tag" data-i18n="tagline">Selected text → file path + line range</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="status-pill" id="statusPill"><span class="status-dot"></span><span id="statusText" data-i18n="statusRunning">Running</span></span>
+      <button type="button" class="lang-button" id="langToggle" title="Switch language">中文</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-main">
+        <div class="eyebrow" data-i18n="shortcutEyebrow">GLOBAL SHORTCUT</div>
+        <h1 data-i18n="heroTitle">Copy a reference, not a paragraph.</h1>
+        <p class="hero-sub" data-i18n="heroSubtitle">Select code or text in an editor, press the shortcut, and get an agent-ready file path with an inclusive line range.</p>
+
+        <div class="hotkey-row">
+          <button type="button" class="hotkey-display" id="hotkeyRecorder" aria-label="Record global shortcut">
+            <span id="hotkeyKeys" class="keycaps"></span>
+            <span id="hotkeyPrompt" class="hotkey-prompt" data-i18n="recordPrompt">Click, then press a new shortcut</span>
+          </button>
+          <button type="button" class="btn btn-ghost-light" id="resetHotkey" data-i18n="reset">Reset</button>
+        </div>
+        <p class="hero-hint" data-i18n="hotkeyHint">Click the shortcut to record a different one. At least one modifier is required.</p>
+      </div>
+
+      <div class="preview-panel">
+        <div class="preview-head">
+          <span data-i18n="previewLabel">CLIPBOARD PREVIEW</span>
+          <span class="preview-live"><i></i><span data-i18n="previewLive">live</span></span>
+        </div>
+        <code class="preview-output" id="previewOutput">D:\projects\android\src\composables\useAsync.ts:13-18</code>
+        <div class="preview-rule"></div>
+        <div class="preview-secondary">
+          <span data-i18n="previewSingle">Single line</span>
+          <code id="previewSingle">D:\projects\android\src\composables\useAsync.ts:13</code>
+        </div>
+        <div class="preview-foot">
+          <span class="preview-chip">13–18</span>
+          <span data-i18n="previewMeta">inclusive lines, zero extra formatting</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="pathTitle">Path discovery</h2>
+            <p data-i18n="pathDesc">Copy Text Pos uses each editor's own metadata first, then falls back to a bounded file search.</p>
+          </div>
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h4l2 2h7A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-10Z"/></svg>
+          </span>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <div class="setting-title" data-i18n="bridgeToggleTitle">VS Code / Cursor bridge</div>
+            <p data-i18n="bridgeToggleDesc">Exact path and range from the editor extension. Recommended.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="enableBridge"><span></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy">
+            <div class="setting-title" data-i18n="jetbrainsToggleTitle">JetBrains Copy Reference</div>
+            <p data-i18n="jetbrainsToggleDesc">Probe IntelliJ, Android Studio and friends with their built-in action.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="enableJetBrains"><span></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy">
+            <div class="setting-title" data-i18n="recentsToggleTitle">Read editor recent files</div>
+            <p data-i18n="recentsToggleDesc">Use local workspace, vault and recent-file lists to find paths.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="enableRecents"><span></span></label>
+        </div>
+
+        <div class="field-block">
+          <div class="field-label-row">
+            <label class="field-label" for="rootInput" data-i18n="searchRootsTitle">Search roots</label>
+            <span class="field-note" data-i18n="searchRootsOptional">fallback only</span>
+          </div>
+          <p class="field-help" data-i18n="searchRootsDesc">Folders to scan when an editor cannot tell us the full path. Keep them narrow.</p>
+          <div class="root-list" id="rootList"></div>
+          <div class="inline-add">
+            <input type="text" id="rootInput" placeholder="D:\projects" autocomplete="off" spellcheck="false">
+            <button type="button" class="btn btn-secondary" id="addRoot" data-i18n="add">Add</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="outputTitle">Output format</h2>
+            <p data-i18n="outputDesc">Shape the clipboard string for your agent, editor or notes app.</p>
+          </div>
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M13.5 4l-3 16"/></svg>
+          </span>
+        </div>
+
+        <div class="field-block">
+          <label class="field-label" for="formatPreset" data-i18n="presetLabel">Preset</label>
+          <select id="formatPreset">
+            <option value="{path}:{range}" data-i18n="presetDefault">path:start-end (collapse single line)</option>
+            <option value="{path}:{start}-{end}" data-i18n="presetAlways">path:start-end (always a range)</option>
+            <option value="{path}#L{start}-L{end}" data-i18n="presetGithub">GitHub link fragment</option>
+            <option value="[{name}]({path}#L{start}-L{end})" data-i18n="presetMarkdown">Markdown link</option>
+            <option value="custom" data-i18n="presetCustom">Custom template</option>
+          </select>
+          <label class="field-label field-gap" for="formatInput" data-i18n="templateLabel">Template</label>
+          <input type="text" id="formatInput" class="mono-input" spellcheck="false" autocomplete="off">
+          <div class="chips" id="placeholderChips">
+            <button type="button" data-token="{path}">{path}</button>
+            <button type="button" data-token="{name}">{name}</button>
+            <button type="button" data-token="{start}">{start}</button>
+            <button type="button" data-token="{end}">{end}</button>
+            <button type="button" data-token="{range}">{range}</button>
+            <button type="button" data-token="{gh_range}">{gh_range}</button>
+          </div>
+          <p class="field-help" data-i18n="templateHelp">{range} becomes 13 or 13-18. {gh_range} becomes L13 or L13-L18. Paths are absolute Windows paths.</p>
+          <div class="format-example">
+            <div class="format-example-label" data-i18n="exampleLabel">Example output</div>
+            <code id="formatExample">D:\projects\android\src\composables\useAsync.ts:13-18</code>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="integrationsTitle">Editor integrations</h2>
+            <p data-i18n="integrationsDesc">Optional helpers make ranges exact instead of inferred.</p>
+          </div>
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 3 4.5 7v5c0 4.4 3.2 8.2 7.5 9 4.3-.8 7.5-4.6 7.5-9V7L12 3Z"/><path d="m8.8 12 2.1 2.1 4.5-4.6"/></svg>
+          </span>
+        </div>
+
+        <div class="bridge-card">
+          <div class="bridge-top">
+            <div>
+              <div class="setting-title" data-i18n="bridgeStatusTitle">Companion bridge</div>
+              <p id="bridgeDetail" class="bridge-detail" data-i18n="bridgeMissing">Snapshot not found. Install the extension for exact VS Code ranges.</p>
+            </div>
+            <span class="badge badge-muted" id="bridgeBadge" data-i18n="notInstalled">not installed</span>
+          </div>
+          <div class="bridge-file" id="bridgeFile"></div>
+        </div>
+
+        <details class="install">
+          <summary data-i18n="installTitle">How to install the VS Code / Cursor bridge</summary>
+          <ol class="install-steps">
+            <li data-i18n="installStep1">Download the .vsix from the GitHub release, or build it from <code>integrations/vscode</code>.</li>
+            <li><span data-i18n="installStep2">Install it in the editor's terminal:</span>
+              <code class="command">code --install-extension copy-text-pos-bridge-0.1.0.vsix</code>
+              <code class="command">cursor --install-extension copy-text-pos-bridge-0.1.0.vsix</code>
+            </li>
+            <li data-i18n="installStep3">Reload the window. A snapshot appears here when an editor is focused.</li>
+          </ol>
+        </details>
+
+        <div class="mini-table">
+          <div class="mini-row">
+            <span data-i18n="editorVSCode">VS Code family</span>
+            <span class="badge badge-exact" data-i18n="levelExact">exact with bridge</span>
+          </div>
+          <div class="mini-row">
+            <span data-i18n="editorJetBrains">JetBrains IDEs</span>
+            <span class="badge badge-good" data-i18n="levelGood">path exact, range scanned</span>
+          </div>
+          <div class="mini-row">
+            <span data-i18n="editorObsidian">Obsidian / Typora</span>
+            <span class="badge badge-heuristic" data-i18n="levelHeuristic">path located, range inferred</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2 data-i18n="appTitle">Application</h2>
+            <p data-i18n="appDesc">Quiet by default. Everything stays on this computer.</p>
+          </div>
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z"/></svg>
+          </span>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <div class="setting-title" data-i18n="notifyTitle">Notifications</div>
+            <p data-i18n="notifyDesc">Show a tray balloon after each successful copy.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="notifications"><span></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-copy">
+            <div class="setting-title" data-i18n="autostartTitle">Start with Windows</div>
+            <p data-i18n="autostartDesc">Launch quietly at sign-in. No administrator rights required.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="startWithWindows"><span></span></label>
+        </div>
+
+        <div class="last-capture">
+          <div class="last-capture-head">
+            <span data-i18n="lastCaptureTitle">Last action</span>
+            <span id="lastCaptureTime" class="muted"></span>
+          </div>
+          <div id="lastCaptureBody" class="last-capture-body" data-i18n="lastCaptureEmpty">Nothing copied yet. Select text in an editor and press the shortcut.</div>
+        </div>
+
+        <div class="path-list">
+          <div class="path-row">
+            <span class="path-label" data-i18n="configFile">Config file</span>
+            <code id="configPath"></code>
+            <button type="button" class="icon-btn" data-action="open-config" data-i18n-title="open" title="Open">↗</button>
+          </div>
+          <div class="path-row">
+            <span class="path-label" data-i18n="logFile">Log file</span>
+            <code id="logPath"></code>
+            <button type="button" class="icon-btn" data-action="open-logs" data-i18n-title="open" title="Open">↗</button>
+          </div>
+          <div class="path-row">
+            <span class="path-label" data-i18n="dataFolder">Data folder</span>
+            <code id="dataFolder"></code>
+            <button type="button" class="icon-btn" data-action="open-data-folder" data-i18n-title="open" title="Open">↗</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card support-card">
+      <div class="card-head">
+        <div>
+          <h2 data-i18n="supportTitle">Editor support at a glance</h2>
+          <p data-i18n="supportDesc">There is no universal Windows API for a file path plus selection line range. Support is layered and honest.</p>
+        </div>
+        <span class="badge badge-exact" data-i18n="supportBadge">local-first</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="tableEditor">Editor</th>
+              <th data-i18n="tablePath">Path</th>
+              <th data-i18n="tableRange">Line range</th>
+              <th data-i18n="tableHow">How</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>VS Code · Cursor · Windsurf · VSCodium</strong></td>
+              <td><span class="badge badge-exact" data-i18n="levelExact">exact</span></td>
+              <td><span class="badge badge-exact" data-i18n="levelExact">exact</span></td>
+              <td data-i18n="howBridge">Bridge extension, window title, workspace index</td>
+            </tr>
+            <tr>
+              <td><strong>IntelliJ IDEA · Android Studio · PyCharm · WebStorm · GoLand · CLion · Rider</strong></td>
+              <td><span class="badge badge-exact" data-i18n="levelExact">exact</span></td>
+              <td><span class="badge badge-good" data-i18n="levelScanned">scanned</span></td>
+              <td data-i18n="howJetBrains">Copy Reference probe + selection search</td>
+            </tr>
+            <tr>
+              <td><strong>Obsidian</strong></td>
+              <td><span class="badge badge-good" data-i18n="levelGood">good</span></td>
+              <td><span class="badge badge-heuristic" data-i18n="levelInferred">inferred</span></td>
+              <td data-i18n="howObsidian">Vault registry + Markdown-aware search</td>
+            </tr>
+            <tr>
+              <td><strong>Typora</strong></td>
+              <td><span class="badge badge-good" data-i18n="levelGood">good</span></td>
+              <td><span class="badge badge-heuristic" data-i18n="levelInferred">inferred</span></td>
+              <td data-i18n="howTypora">Recent-file history + Markdown-aware search</td>
+            </tr>
+            <tr>
+              <td><strong>Sublime Text · Notepad++ · EmEditor · Notepad</strong></td>
+              <td><span class="badge badge-heuristic" data-i18n="levelMaybe">depends</span></td>
+              <td><span class="badge badge-heuristic" data-i18n="levelInferred">inferred</span></td>
+              <td data-i18n="howGeneric">Full path in title or configured search roots</td>
+            </tr>
+            <tr>
+              <td><strong data-i18n="editorUnsupported">Terminals · browsers · Office documents</strong></td>
+              <td><span class="badge badge-muted" data-i18n="levelNo">—</span></td>
+              <td><span class="badge badge-muted" data-i18n="levelNo">—</span></td>
+              <td data-i18n="howUnsupported">Not plain files with a selection. Terminal windows are skipped.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footnote" data-i18n="supportFootnote">Ranges are inclusive. Duplicate snippets without a bridge or title line hint resolve to the first occurrence. Inferred ranges can be wrong if the buffer is unsaved or the selection was rendered Markdown.</p>
+    </section>
+
+    <footer class="footer">
+      <div><span data-i18n="footerPrivacy">Local only · no telemetry · no network calls</span></div>
+      <div class="footer-meta"><span id="versionLabel">Copy Text Pos</span><span class="dot">·</span><span data-i18n="footerSettings">Settings served from 127.0.0.1</span></div>
+    </footer>
+  </main>
+
+  <div class="savebar" id="savebar">
+    <div class="save-state">
+      <span class="save-dot"></span>
+      <span id="saveStatus" data-i18n="allSaved">All changes saved</span>
+    </div>
+    <button type="button" class="btn btn-primary" id="saveBtn" data-i18n="saveChanges">Save changes</button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

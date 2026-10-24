@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows build and tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.x"
+          cache: true
+
+      - name: Environment
+        run: |
+          go version
+          go env GOOS GOARCH CGO_ENABLED
+
+      - name: Test
+        env:
+          GOARCH: amd64
+          CGO_ENABLED: "0"
+        run: |
+          # GlobalLock returns raw HGLOBAL memory; unsafe.Pointer conversion is
+          # intentional and cannot be expressed safely on Windows.
+          go vet -unsafeptr=false ./...
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          go test ./...
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Build console binary
+        shell: pwsh
+        run: .\build.ps1 -Version 0.0.0-ci -Console -Output bin\copy-text-pos-ci.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: copy-text-pos-ci
+          path: bin\copy-text-pos-ci.exe
+          if-no-files-found: error
+
+  extension:
+    name: VS Code bridge package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Syntax check and unit test
+        working-directory: integrations/vscode
+        run: |
+          node --check extension.js
+          npm test
+
+      - name: Package VSIX
+        working-directory: integrations/vscode
+        run: npx --yes @vscode/vsce package --no-dependencies --allow-missing-repository
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: copy-text-pos-bridge-vsix
+          path: integrations/vscode/*.vsix
+          if-no-files-found: error

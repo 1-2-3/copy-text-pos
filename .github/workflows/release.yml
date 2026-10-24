@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without leading v (for example 0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build Windows release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.x"
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $v = "${{ inputs.version }}"
+          } else {
+            $v = "${env:GITHUB_REF_NAME}" -replace '^v', ''
+          }
+          if (-not $v) { throw "Could not resolve version" }
+          "value=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Test
+        env:
+          GOARCH: amd64
+          CGO_ENABLED: "0"
+        run: go test ./...
+
+      - name: Package VS Code bridge
+        working-directory: integrations/vscode
+        run: npx --yes @vscode/vsce package --no-dependencies --allow-missing-repository
+
+      - name: Build app and package
+        shell: pwsh
+        run: .\build.ps1 -Version "${{ steps.version.outputs.value }}" -Package
+
+      - name: Write checksums for release assets
+        shell: pwsh
+        run: |
+          Get-ChildItem bin -File | Where-Object { $_.Name -match '\.(exe|zip)$' } | ForEach-Object {
+            $hash = (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)" | Out-File -FilePath "$($_.FullName).sha256" -Encoding ascii
+          }
+          Get-ChildItem bin -Filter *.sha256 | ForEach-Object { Get-Content $_.FullName }
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.value }}
+          generate_release_notes: true
+          files: |
+            bin/*.exe
+            bin/*.exe.sha256
+            bin/*.zip
+            bin/*.zip.sha256
+            integrations/vscode/*.vsix

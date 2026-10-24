@@ -1,0 +1,14 @@
+* text=auto eol=lf
+
+*.go text eol=lf
+*.ps1 text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+
+*.ico binary
+*.png binary
+*.syso binary
+*.exe binary
+*.zip binary
+*.vsix binary

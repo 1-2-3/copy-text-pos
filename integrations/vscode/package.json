@@ -1,0 +1,43 @@
+{
+  "name": "copy-text-pos-bridge",
+  "displayName": "Copy Text Pos Bridge",
+  "description": "Exact active file and selection line range for Copy Text Pos.",
+  "version": "0.1.0",
+  "publisher": "copy-text-pos",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "copy",
+    "path",
+    "line",
+    "reference",
+    "agent"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:copyTextPos.showBridgeStatus"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "copyTextPos.showBridgeStatus",
+        "title": "Copy Text Pos: Show Bridge Status"
+      }
+    ]
+  },
+  "scripts": {
+    "package": "npx --yes @vscode/vsce package --no-dependencies --allow-missing-repository",
+    "test": "node test/bridge.test.js"
+  },
+  "files": [
+    "extension.js",
+    "README.md",
+    "LICENSE"
+  ]
+}
