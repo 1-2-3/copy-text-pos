@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <code>D:\projects\android\src\composables\useAsync.ts:13-18</code>
+  <code>"D:\projects\android\src\composables\useAsync.ts:13-18"</code>
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@ selection into an absolute path with an inclusive line range — the format most
 coding agents understand:
 
 ```text
-D:\projects\android\src\composables\useAsync.ts:13-18
+"D:\projects\android\src\composables\useAsync.ts:13-18"
 ```
 
 It works without plugins in many editors. For VS Code, Cursor, Windsurf and
@@ -70,6 +70,9 @@ numbers, and formatting the result. Copy Text Pos reduces it to one keystroke.
   searches.
 - **Polite clipboard handling** — if a copy fails, the previous clipboard is
   restored instead of being destroyed.
+- **Quoted by default** — the complete `path:line` reference is wrapped in
+  double quotes, ready to paste into an agent or chat box. Templates can switch
+  back to an unquoted form or emit GitHub/Markdown references.
 - **Agent-friendly templates** — `path:start-end`, always-range, GitHub
   `#L13-L18`, Markdown links, or your own placeholders.
 - **Local only** — no network calls, no telemetry. Settings are served by a
@@ -83,7 +86,7 @@ numbers, and formatting the result. Copy Text Pos reduces it to one keystroke.
 2. Run it. A tray icon appears. The default hotkey is **`Ctrl+Shift+C`**.
 3. Select text in an editor and press the shortcut.
 4. Paste. You should get a reference like
-   `D:\projects\android\src\composables\useAsync.ts:13-18`.
+   `"D:\projects\android\src\composables\useAsync.ts:13-18"`.
 5. Right-click the tray icon → **Settings…** to change the shortcut, output
    template, search roots and integrations.
 
@@ -229,7 +232,7 @@ IDEs use their own accessibility bridge. Counting UI text lines is not the same
 as counting source lines when the editor folds code, wraps lines, or renders
 Markdown. And UIA still does not tell us the file path.
 
-So v0.1.2 uses a hybrid of **editor-native metadata + clipboard selection +
+So v0.1.3 uses a hybrid of **editor-native metadata + clipboard selection +
 source search**, with an optional exact bridge for VS Code derivatives. UIA
 might be added later for narrow jobs such as classifying the focused control
 (editor vs. integrated terminal), but it is not a good foundation for the whole
@@ -246,7 +249,7 @@ Open **tray icon → Settings…**. The page is served locally at a random
 | Setting | Default | Meaning |
 |---|---|---|
 | `hotkey` | `Ctrl+Shift+C` | Global shortcut, e.g. `Ctrl+Alt+Shift+F10` |
-| `format` | `{path}:{range}` | Clipboard template |
+| `format` | `"{path}:{range}"` | Clipboard template; quotes are literal |
 | `searchRoots` | `[]` | Folders scanned as a fallback |
 | `enableVSCodeBridge` | `true` | Read the VS Code/Cursor snapshot |
 | `enableJetBrainsReference` | `true` | Probe JetBrains *Copy Reference* |
@@ -276,14 +279,18 @@ names. At least one modifier is required.
 Useful templates:
 
 ```text
-{path}:{range}
+"{path}:{range}"                  ← default
+"{path}:{start}-{end}"
+{path}:{range}                    (unquoted)
 {path}:{start}-{end}
 {path}#L{start}-L{end}
 [{name}]({path}#L{start}-L{end})
 ```
 
-For a single-line selection, `{range}` collapses to one number, which is what
-most agents expect.
+The quotes are ordinary literal characters in the template, so the copied text
+is exactly `"D:\...\file.ts:13-18"`. Remove them or pick the unquoted preset if
+your downstream tool does not want quoting. For a single-line selection,
+`{range}` collapses to one number, which is what most agents expect.
 
 ## Privacy and safety
 
@@ -332,7 +339,7 @@ Requirements:
 ```powershell
 git clone <this repository>
 cd copy-text-pos
-.\build.ps1 -Version 0.1.2 -Package
+.\build.ps1 -Version 0.1.3 -Package
 ```
 
 Outputs:
@@ -340,13 +347,13 @@ Outputs:
 ```text
 bin\copy-text-pos.exe
 bin\copy-text-pos.exe.sha256
-bin\copy-text-pos-0.1.2-win-x64.zip
+bin\copy-text-pos-0.1.3-win-x64.zip
 ```
 
 For a build with a console window (useful for debugging):
 
 ```powershell
-.\build.ps1 -Version 0.1.2 -Console -Output bin\copy-text-pos-dev.exe
+.\build.ps1 -Version 0.1.3 -Console -Output bin\copy-text-pos-dev.exe
 ```
 
 Tests:

@@ -11,8 +11,18 @@ func TestRenderDefault(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := `D:\projects\android\src\composables\useAsync.ts:13-18`
+	want := `"D:\projects\android\src\composables\useAsync.ts:13-18"`
 	if got != want {
+		t.Fatalf("got %q want %q", got, want)
+	}
+}
+
+func TestQuotedSingleLine(t *testing.T) {
+	got, err := Render(DefaultTemplate, Location{Path: `D:\a b\x.ts`, Start: 7, End: 7})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := `"D:\a b\x.ts:7"`; got != want {
 		t.Fatalf("got %q want %q", got, want)
 	}
 }

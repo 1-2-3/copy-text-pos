@@ -4,8 +4,8 @@
 1 RT_MANIFEST "app.manifest"
 
 1 VERSIONINFO
-FILEVERSION 0,1,2,0
-PRODUCTVERSION 0,1,2,0
+FILEVERSION 0,1,3,0
+PRODUCTVERSION 0,1,3,0
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -15,12 +15,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "Copy Text Pos contributors"
       VALUE "FileDescription", "Copy Text Pos"
-      VALUE "FileVersion", "0.1.2"
+      VALUE "FileVersion", "0.1.3"
       VALUE "InternalName", "copy-text-pos"
       VALUE "LegalCopyright", "MIT License"
       VALUE "OriginalFilename", "copy-text-pos.exe"
       VALUE "ProductName", "Copy Text Pos"
-      VALUE "ProductVersion", "0.1.2"
+      VALUE "ProductVersion", "0.1.3"
     END
   END
   BLOCK "VarFileInfo"

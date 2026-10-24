@@ -48,11 +48,11 @@
           <span data-i18n="previewLabel">CLIPBOARD PREVIEW</span>
           <span class="preview-live"><i></i><span data-i18n="previewLive">live</span></span>
         </div>
-        <code class="preview-output" id="previewOutput">D:\projects\android\src\composables\useAsync.ts:13-18</code>
+        <code class="preview-output" id="previewOutput">"D:\projects\android\src\composables\useAsync.ts:13-18"</code>
         <div class="preview-rule"></div>
         <div class="preview-secondary">
           <span data-i18n="previewSingle">Single line</span>
-          <code id="previewSingle">D:\projects\android\src\composables\useAsync.ts:13</code>
+          <code id="previewSingle">"D:\projects\android\src\composables\useAsync.ts:13"</code>
         </div>
         <div class="preview-foot">
           <span class="preview-chip">13–18</span>
@@ -123,8 +123,9 @@
         <div class="field-block">
           <label class="field-label" for="formatPreset" data-i18n="presetLabel">Preset</label>
           <select id="formatPreset">
-            <option value="{path}:{range}" data-i18n="presetDefault">path:start-end (collapse single line)</option>
-            <option value="{path}:{start}-{end}" data-i18n="presetAlways">path:start-end (always a range)</option>
+            <option value='"{path}:{range}"' data-i18n="presetDefault">Quoted path:start-end (recommended)</option>
+            <option value='"{path}:{start}-{end}"' data-i18n="presetAlways">Quoted path:start-end (always a range)</option>
+            <option value="{path}:{range}" data-i18n="presetUnquoted">Unquoted path:start-end</option>
             <option value="{path}#L{start}-L{end}" data-i18n="presetGithub">GitHub link fragment</option>
             <option value="[{name}]({path}#L{start}-L{end})" data-i18n="presetMarkdown">Markdown link</option>
             <option value="custom" data-i18n="presetCustom">Custom template</option>
@@ -142,7 +143,7 @@
           <p class="field-help" data-i18n="templateHelp">{range} becomes 13 or 13-18. {gh_range} becomes L13 or L13-L18. Paths are absolute Windows paths.</p>
           <div class="format-example">
             <div class="format-example-label" data-i18n="exampleLabel">Example output</div>
-            <code id="formatExample">D:\projects\android\src\composables\useAsync.ts:13-18</code>
+            <code id="formatExample">"D:\projects\android\src\composables\useAsync.ts:13-18"</code>
           </div>
         </div>
       </section>

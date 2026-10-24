@@ -39,13 +39,14 @@
       outputTitle: 'Output format',
       outputDesc: 'Shape the clipboard string for your agent, editor or notes app.',
       presetLabel: 'Preset',
-      presetDefault: 'path:start-end (collapse single line)',
-      presetAlways: 'path:start-end (always a range)',
+      presetDefault: 'Quoted path:start-end (recommended)',
+      presetAlways: 'Quoted path:start-end (always a range)',
+      presetUnquoted: 'Unquoted path:start-end',
       presetGithub: 'GitHub link fragment',
       presetMarkdown: 'Markdown link',
       presetCustom: 'Custom template',
       templateLabel: 'Template',
-      templateHelp: '{range} becomes 13 or 13-18. {gh_range} becomes L13 or L13-L18. Paths are absolute Windows paths.',
+      templateHelp: 'The default wraps the complete reference in double quotes. {range} becomes 13 or 13-18; {gh_range} becomes L13 or L13-L18.',
       exampleLabel: 'Example output',
       integrationsTitle: 'Editor integrations',
       integrationsDesc: 'Optional helpers make ranges exact instead of inferred.',
@@ -161,13 +162,14 @@
       outputTitle: '输出格式',
       outputDesc: '按 Agent、编辑器或笔记软件的需要定制剪贴板内容。',
       presetLabel: '预设',
-      presetDefault: '路径:起始-结束（单行折叠）',
-      presetAlways: '路径:起始-结束（始终范围）',
+      presetDefault: '带引号：路径:起始-结束（推荐）',
+      presetAlways: '带引号：路径:起始-结束（始终范围）',
+      presetUnquoted: '不带引号：路径:起始-结束',
       presetGithub: 'GitHub 行号片段',
       presetMarkdown: 'Markdown 链接',
       presetCustom: '自定义模板',
       templateLabel: '模板',
-      templateHelp: '{range} 输出 13 或 13-18；{gh_range} 输出 L13 或 L13-L18。路径始终为 Windows 绝对路径。',
+      templateHelp: '默认用双引号包裹整段引用。{range} 输出 13 或 13-18；{gh_range} 输出 L13 或 L13-L18。',
       exampleLabel: '输出示例',
       integrationsTitle: '编辑器集成',
       integrationsDesc: '可选扩展可把推断范围升级为精确范围。',
@@ -252,7 +254,7 @@
     }
   };
 
-  const PRESETS = new Set(['{path}:{range}', '{path}:{start}-{end}', '{path}#L{start}-L{end}', '[{name}]({path}#L{start}-L{end})']);
+  const PRESETS = new Set(['"{path}:{range}"', '"{path}:{start}-{end}"', '{path}:{range}', '{path}:{start}-{end}', '{path}#L{start}-L{end}', '[{name}]({path}#L{start}-L{end})']);
 
   let lang = localStorage.getItem('ctp-lang');
   if (lang !== 'en' && lang !== 'zh') {

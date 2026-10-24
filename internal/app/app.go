@@ -108,9 +108,11 @@ func New(configPath string, debug bool) (*App, error) {
 		a.log.Error("load config: %v", loadErr)
 	}
 	a.firstRun = firstRun
-	if firstRun || recovered {
+	if firstRun || recovered || cfg.Migrated {
 		if err := config.Save(configPath, cfg); err != nil {
 			a.log.Error("write initial config: %v", err)
+		} else if cfg.Migrated {
+			a.log.Info("migrated configuration to schema v%d", config.CurrentVersion)
 		}
 	}
 	if recovered {

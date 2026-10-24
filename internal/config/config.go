@@ -16,7 +16,7 @@ import (
 )
 
 // CurrentVersion is the config schema version.
-const CurrentVersion = 1
+const CurrentVersion = 2
 
 // ErrNotFound means no config file exists yet.
 var ErrNotFound = errors.New("config file not found")
@@ -33,6 +33,9 @@ type Config struct {
 	Notifications            bool     `json:"notifications"`
 	StartWithWindows         bool     `json:"startWithWindows"`
 	MaxSearchMs              int      `json:"maxSearchMs"`
+
+	// Migrated is transient: true when Load upgraded an older schema.
+	Migrated bool `json:"-"`
 }
 
 // Default returns a ready-to-run configuration.
@@ -118,6 +121,15 @@ func Load(path string) (Config, error) {
 	data = bytes.TrimPrefix(data, []byte{0xEF, 0xBB, 0xBF})
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return Default(), fmt.Errorf("parse %s: %w", path, err)
+	}
+	incomingVersion := cfg.Version
+	if incomingVersion < CurrentVersion {
+		cfg.Migrated = true
+	}
+	// v1 configs stored the unquoted default explicitly. Upgrade that one
+	// default to the new quoted form while leaving custom templates alone.
+	if incomingVersion < 2 && cfg.Format == render.LegacyDefaultTemplate {
+		cfg.Format = render.DefaultTemplate
 	}
 	cfg.Normalize()
 	if cfg.Hotkey == "" {

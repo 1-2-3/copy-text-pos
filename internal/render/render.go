@@ -17,8 +17,12 @@ type Location struct {
 	End   int
 }
 
-// DefaultTemplate preserves the most widely understood "path:start-end" form.
-const DefaultTemplate = "{path}:{range}"
+// DefaultTemplate wraps the complete path:line reference in double quotes for
+// direct pasting into agents and chat boxes.
+const DefaultTemplate = `"{path}:{range}"`
+
+// LegacyDefaultTemplate is the pre-0.1.3 default, used for config migration.
+const LegacyDefaultTemplate = "{path}:{range}"
 
 var placeholderRE = regexp.MustCompile(`\{([A-Za-z_]+)\}`)
 

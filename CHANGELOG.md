@@ -7,6 +7,16 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-24
+
+### Changed
+
+- Default clipboard output is now wrapped in double quotes:
+  `"D:\projects\app\src\useAsync.ts:13-18"`.
+- Added quoted presets and an explicit unquoted preset in Settings.
+- Config schema v2 migrates the old unquoted default to the quoted default
+  without touching custom templates.
+
 ## [0.1.2] - 2026-10-24
 
 ### Fixed

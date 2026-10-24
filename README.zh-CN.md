@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <code>D:\projects\android\src\composables\useAsync.ts:13-18</code>
+  <code>"D:\projects\android\src\composables\useAsync.ts:13-18"</code>
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@ Issue、终端或笔记软件。它会把当前编辑器选区转换成带行号
 这是大多数编程 Agent 都能理解的格式：
 
 ```text
-D:\projects\android\src\composables\useAsync.ts:13-18
+"D:\projects\android\src\composables\useAsync.ts:13-18"
 ```
 
 很多编辑器无需插件即可使用。对于 VS Code、Cursor、Windsurf 和 VSCodium，
@@ -65,6 +65,8 @@ D:\projects\android\src\composables\useAsync.ts:13-18
 - **分层兜底**：窗口标题、最近工作区索引、Obsidian Vault 元数据、Typora 历史、
   JetBrains *Copy Reference*，最后才是限定范围的源码搜索。
 - **温和的剪贴板处理**：如果复制失败，会恢复你原来的剪贴板，而不是直接覆盖。
+- **默认加双引号**：完整的 `路径:行号` 引用会被双引号包裹，可直接粘贴给 Agent
+  或聊天框；也可以在模板中切换为不带引号或 GitHub/Markdown 格式。
 - **面向 Agent 的模板**：`路径:起始-结束`、始终范围、GitHub `#L13-L18`、
   Markdown 链接，或自定义占位符。
 - **纯本地**：无网络请求、无遥测。设置页由带随机令牌的本地回环服务提供。
@@ -76,7 +78,7 @@ D:\projects\android\src\composables\useAsync.ts:13-18
 2. 运行。任务栏通知区域会出现图标，默认快捷键为 **`Ctrl+Shift+C`**。
 3. 在编辑器中选中文字，按下快捷键。
 4. 粘贴。你会得到类似
-   `D:\projects\android\src\composables\useAsync.ts:13-18` 的引用。
+   `"D:\projects\android\src\composables\useAsync.ts:13-18"` 的引用。
 5. 右键托盘图标 → **设置…**，可以修改快捷键、输出模板、搜索根目录和各项集成。
 
 配置文件位于：
@@ -207,7 +209,7 @@ UIA 可以提供控件树、名称、值、选中模式、`TextPattern` 等。�
 辅助功能桥接。即使能数出 UI 文本行，代码折叠、自动换行、Markdown 渲染也会让
 它和源码行号不一致。而路径问题仍然没有解决。
 
-因此 v0.1.2 采用**编辑器原生元数据 + 剪贴板选区 + 源码搜索**的混合方案，并为
+因此 v0.1.3 采用**编辑器原生元数据 + 剪贴板选区 + 源码搜索**的混合方案，并为
 VS Code 系列提供精确的桥接扩展。未来也许会用 UIA 做很窄的辅助判断（例如当前
 焦点是编辑器还是内置终端），但不会把它作为主数据源。
 
@@ -222,7 +224,7 @@ VS Code 系列提供精确的桥接扩展。未来也许会用 UIA 做很窄的�
 | 配置项 | 默认值 | 含义 |
 |---|---|---|
 | `hotkey` | `Ctrl+Shift+C` | 全局快捷键，例如 `Ctrl+Alt+Shift+F10` |
-| `format` | `{path}:{range}` | 剪贴板模板 |
+| `format` | `"{path}:{range}"` | 剪贴板模板，引号为普通字符 |
 | `searchRoots` | `[]` | 兜底搜索的目录 |
 | `enableVSCodeBridge` | `true` | 读取 VS Code/Cursor 快照 |
 | `enableJetBrainsReference` | `true` | 触发 JetBrains *Copy Reference* |
@@ -251,13 +253,17 @@ VS Code 系列提供精确的桥接扩展。未来也许会用 UIA 做很窄的�
 常用模板：
 
 ```text
-{path}:{range}
+"{path}:{range}"                  ← 默认
+"{path}:{start}-{end}"
+{path}:{range}                    （不带引号）
 {path}:{start}-{end}
 {path}#L{start}-L{end}
 [{name}]({path}#L{start}-L{end})
 ```
 
-单行选区时，`{range}` 会自动折叠为一个数字，符合大多数 Agent 的预期。
+引号是模板里的普通字符，所以最终复制内容就是 `"D:\...\file.ts:13-18"`。
+如果下游工具不需要引号，可以删掉引号或选择“不带引号”的预设。单行选区时，
+`{range}` 会自动折叠为一个数字，符合大多数 Agent 的预期。
 
 ## 隐私与安全
 
@@ -302,7 +308,7 @@ VS Code 系列提供精确的桥接扩展。未来也许会用 UIA 做很窄的�
 ```powershell
 git clone <本仓库地址>
 cd copy-text-pos
-.\build.ps1 -Version 0.1.2 -Package
+.\build.ps1 -Version 0.1.3 -Package
 ```
 
 输出：
@@ -310,13 +316,13 @@ cd copy-text-pos
 ```text
 bin\copy-text-pos.exe
 bin\copy-text-pos.exe.sha256
-bin\copy-text-pos-0.1.2-win-x64.zip
+bin\copy-text-pos-0.1.3-win-x64.zip
 ```
 
 带控制台窗口的开发构建（便于调试）：
 
 ```powershell
-.\build.ps1 -Version 0.1.2 -Console -Output bin\copy-text-pos-dev.exe
+.\build.ps1 -Version 0.1.3 -Console -Output bin\copy-text-pos-dev.exe
 ```
 
 测试：
