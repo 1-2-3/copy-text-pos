@@ -16,7 +16,7 @@ import (
 )
 
 // CurrentVersion is the config schema version.
-const CurrentVersion = 2
+const CurrentVersion = 3
 
 // ErrNotFound means no config file exists yet.
 var ErrNotFound = errors.New("config file not found")
@@ -32,6 +32,7 @@ type Config struct {
 	EnableEditorRecents      bool     `json:"enableEditorRecents"`
 	Notifications            bool     `json:"notifications"`
 	StartWithWindows         bool     `json:"startWithWindows"`
+	ReleaseHotkeyProcesses   []string `json:"releaseHotkeyProcesses"`
 	MaxSearchMs              int      `json:"maxSearchMs"`
 
 	// Migrated is transient: true when Load upgraded an older schema.
@@ -50,6 +51,7 @@ func Default() Config {
 		EnableEditorRecents:      true,
 		Notifications:            true,
 		StartWithWindows:         false,
+		ReleaseHotkeyProcesses:   []string{"explorer.exe"},
 		MaxSearchMs:              1800,
 	}
 }
@@ -130,6 +132,19 @@ func Load(path string) (Config, error) {
 	// default to the new quoted form while leaving custom templates alone.
 	if incomingVersion < 2 && cfg.Format == render.LegacyDefaultTemplate {
 		cfg.Format = render.DefaultTemplate
+	}
+	// v2 used a single "release in Explorer" boolean. Carry a disabled setting
+	// over to the new process list; missing or true keeps the default Explorer.
+	var rawFields map[string]json.RawMessage
+	if json.Unmarshal(data, &rawFields) == nil {
+		if _, hasList := rawFields["releaseHotkeyProcesses"]; !hasList {
+			if rawPause, hasPause := rawFields["pauseHotkeyInExplorer"]; hasPause {
+				var pause bool
+				if json.Unmarshal(rawPause, &pause) == nil && !pause {
+					cfg.ReleaseHotkeyProcesses = []string{}
+				}
+			}
+		}
 	}
 	cfg.Normalize()
 	if cfg.Hotkey == "" {
@@ -223,6 +238,51 @@ func (c *Config) Normalize() {
 		roots = append(roots, root)
 	}
 	c.SearchRoots = roots
+
+	if c.ReleaseHotkeyProcesses == nil {
+		c.ReleaseHotkeyProcesses = []string{"explorer.exe"}
+	}
+	processSeen := make(map[string]bool, len(c.ReleaseHotkeyProcesses))
+	processes := make([]string, 0, len(c.ReleaseHotkeyProcesses))
+	for _, name := range c.ReleaseHotkeyProcesses {
+		name = NormalizeProcessName(name)
+		if name == "" || processSeen[name] {
+			continue
+		}
+		processSeen[name] = true
+		processes = append(processes, name)
+	}
+	c.ReleaseHotkeyProcesses = processes
+}
+
+// NormalizeProcessName converts a user-entered executable path or bare name to
+// the lowercase basename used for foreground matching.
+func NormalizeProcessName(name string) string {
+	name = strings.TrimSpace(strings.ToLower(name))
+	name = strings.Trim(name, `"'`)
+	name = filepath.Base(name)
+	if name == "" || name == "." {
+		return ""
+	}
+	if !strings.HasSuffix(name, ".exe") {
+		name += ".exe"
+	}
+	return name
+}
+
+// ReleasesHotkeyFor reports whether the shortcut should be released while the
+// given process executable is in the foreground.
+func (c Config) ReleasesHotkeyFor(processName string) bool {
+	processName = NormalizeProcessName(processName)
+	if processName == "" {
+		return false
+	}
+	for _, configured := range c.ReleaseHotkeyProcesses {
+		if configured == processName {
+			return true
+		}
+	}
+	return false
 }
 
 // Validate returns a fatal error for bad shortcuts/templates and warnings for

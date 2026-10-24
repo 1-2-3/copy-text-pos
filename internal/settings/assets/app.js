@@ -73,6 +73,13 @@
       notifyDesc: 'Show a tray balloon after each successful copy.',
       autostartTitle: 'Start with Windows',
       autostartDesc: 'Launch quietly at sign-in. No administrator rights required.',
+      releaseAppsTitle: 'Release shortcut for these apps',
+      releaseAppsNote: 'process names',
+      releaseAppsDesc: "While one of these executables is foreground, the global shortcut is released so the app's own shortcut can work. Default: explorer.exe.",
+      releaseAppsHint: 'Use the executable name, for example explorer.exe or chrome.exe. Matching is case-insensitive.',
+      noReleaseApps: 'No passthrough apps. The global shortcut stays active everywhere.',
+      removeApp: 'Remove app',
+      appInvalid: 'Enter an executable name such as explorer.exe.',
       lastCaptureTitle: 'Last action',
       lastCaptureEmpty: 'Nothing copied yet. Select text in an editor and press the shortcut.',
       configFile: 'Config file',
@@ -196,6 +203,13 @@
       notifyDesc: '每次成功复制后显示托盘气泡。',
       autostartTitle: '开机启动',
       autostartDesc: '登录后静默启动，无需管理员权限。',
+      releaseAppsTitle: '在这些应用中释放快捷键',
+      releaseAppsNote: '进程名',
+      releaseAppsDesc: '当这些可执行文件之一位于前台时，临时释放全局快捷键，让该应用自己的快捷键正常工作。默认：explorer.exe。',
+      releaseAppsHint: '填写可执行文件名，例如 explorer.exe 或 chrome.exe；大小写不敏感。',
+      noReleaseApps: '没有需要释放快捷键的应用，全局快捷键在所有窗口中都保持生效。',
+      removeApp: '移除应用',
+      appInvalid: '请输入可执行文件名，例如 explorer.exe。',
       lastCaptureTitle: '最近一次操作',
       lastCaptureEmpty: '还没有复制记录。在编辑器中选中文字后按下快捷键即可。',
       configFile: '配置文件',
@@ -266,6 +280,7 @@
   let state = null;
   let draft = null;
   let draftRoots = [];
+  let draftReleaseApps = [];
   let draftHotkey = 'Ctrl+Shift+C';
   let recording = false;
   let dirty = false;
@@ -337,6 +352,7 @@
       maxSearchMs: cfg.maxSearchMs || 1800,
     };
     draftRoots = [...draft.searchRoots];
+    draftReleaseApps = Array.isArray(cfg.releaseHotkeyProcesses) ? [...cfg.releaseHotkeyProcesses] : ['explorer.exe'];
     draftHotkey = draft.hotkey;
     els.enableBridge.checked = draft.enableVSCodeBridge;
     els.enableJetBrains.checked = draft.enableJetBrainsReference;
@@ -347,6 +363,7 @@
     syncPreset(draft.format);
     renderHotkey();
     renderRoots();
+    renderReleaseApps();
     setPreview();
     els.configPath.textContent = next.configPath || '—';
     els.logPath.textContent = next.logPath || '—';
@@ -417,6 +434,7 @@
       enableEditorRecents: els.enableRecents.checked,
       notifications: els.notifications.checked,
       startWithWindows: els.startWithWindows.checked,
+      releaseHotkeyProcesses: [...draftReleaseApps],
       maxSearchMs: draft ? draft.maxSearchMs : 1800,
     };
   }
@@ -524,6 +542,67 @@
     draftRoots.push(value);
     els.rootInput.value = '';
     renderRoots();
+    markDirty();
+  }
+
+  function renderReleaseApps() {
+    els.releaseList.replaceChildren();
+    if (!draftReleaseApps.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-roots';
+      empty.textContent = t('noReleaseApps');
+      els.releaseList.appendChild(empty);
+      return;
+    }
+    draftReleaseApps.forEach((app) => {
+      const row = document.createElement('div');
+      row.className = 'root-item';
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      icon.setAttribute('viewBox', '0 0 24 24');
+      const frame = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      frame.setAttribute('x', '3');
+      frame.setAttribute('y', '4');
+      frame.setAttribute('width', '18');
+      frame.setAttribute('height', '16');
+      frame.setAttribute('rx', '2');
+      const bar = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      bar.setAttribute('d', 'M3 9h18');
+      icon.append(frame, bar);
+      const label = document.createElement('span');
+      label.textContent = app;
+      label.title = app;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'root-remove';
+      remove.textContent = '×';
+      remove.title = t('removeApp');
+      remove.setAttribute('aria-label', t('removeApp'));
+      remove.addEventListener('click', () => {
+        draftReleaseApps = draftReleaseApps.filter((item) => item !== app);
+        renderReleaseApps();
+        markDirty();
+      });
+      row.append(icon, label, remove);
+      els.releaseList.appendChild(row);
+    });
+  }
+
+  function addReleaseApp() {
+    let value = els.releaseInput.value.trim().toLowerCase().replace(/^"|"$/g, '');
+    value = value.split(/[\\/]/).pop() || '';
+    if (!value) return;
+    if (!value.endsWith('.exe')) value += '.exe';
+    if (!/^[a-z0-9._ -]+\.exe$/.test(value)) {
+      showToast(t('appInvalid'), true);
+      return;
+    }
+    if (draftReleaseApps.some((item) => item.toLowerCase() === value)) {
+      els.releaseInput.value = '';
+      return;
+    }
+    draftReleaseApps.push(value);
+    els.releaseInput.value = '';
+    renderReleaseApps();
     markDirty();
   }
 
@@ -741,6 +820,7 @@
       applyI18n();
       renderHotkey();
       renderRoots();
+      renderReleaseApps();
     });
 
     [els.enableBridge, els.enableJetBrains, els.enableRecents, els.notifications, els.startWithWindows]
@@ -753,6 +833,11 @@
       if (event.key === 'Enter') { event.preventDefault(); addRoot(); }
     });
     els.addRoot.addEventListener('click', addRoot);
+
+    els.releaseInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') { event.preventDefault(); addReleaseApp(); }
+    });
+    els.addReleaseApp.addEventListener('click', addReleaseApp);
 
     els.formatPreset.addEventListener('change', () => {
       if (els.formatPreset.value !== 'custom') {
@@ -796,7 +881,7 @@
     for (const key of ['langToggle', 'statusPill', 'statusText', 'hotkeyRecorder', 'hotkeyKeys', 'hotkeyPrompt',
       'resetHotkey', 'previewOutput', 'previewSingle', 'enableBridge', 'enableJetBrains', 'enableRecents',
       'rootInput', 'rootList', 'addRoot', 'formatPreset', 'formatInput', 'formatExample', 'bridgeBadge', 'bridgeDetail',
-      'bridgeFile', 'notifications', 'startWithWindows', 'lastCaptureTime', 'lastCaptureBody',
+      'bridgeFile', 'notifications', 'startWithWindows', 'releaseInput', 'releaseList', 'addReleaseApp', 'lastCaptureTime', 'lastCaptureBody',
       'configPath', 'logPath', 'dataFolder', 'versionLabel', 'savebar', 'saveBtn', 'saveStatus', 'toast']) {
       els[key] = $(key);
     }

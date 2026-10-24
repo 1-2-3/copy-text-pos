@@ -7,6 +7,32 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-10-24
+
+### Changed
+
+- Replaced the single “release in Explorer” switch with a configurable
+  `releaseHotkeyProcesses` list. The default list contains `explorer.exe`.
+- The settings page now lets users add/remove executable names; the global
+  shortcut is released while any listed process is foreground and restored when
+  the user switches away.
+- Config schema v3 migrates the old `pauseHotkeyInExplorer` setting: `false`
+  becomes an empty list, `true` or a missing value keeps Explorer.
+
+## [0.1.4] - 2026-10-24
+
+### Added
+
+- File Explorer compatibility: while Explorer is foreground, Copy Text Pos
+  temporarily unregisters its global shortcut so Explorer's native
+  `Ctrl+Shift+C` “Copy as path” action keeps working. The shortcut returns when
+  another application is focused. Controlled by `pauseHotkeyInExplorer`.
+
+### Changed
+
+- Shortcut suspension is integrated with settings changes, so changing the
+  hotkey while Explorer is active is applied when the shortcut is released.
+
 ## [0.1.3] - 2026-10-24
 
 ### Changed

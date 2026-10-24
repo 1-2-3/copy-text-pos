@@ -54,10 +54,12 @@ type Tray struct {
 
 	wndProcCallback uintptr
 	currentHotkey   *hotkey.Spec
+	desiredHotkey   *hotkey.Spec
 	hotkeyErr       error
 
-	started atomic.Bool
-	uiQueue chan func()
+	started   atomic.Bool
+	suspended atomic.Bool
+	uiQueue   chan func()
 
 	hotkeyMu sync.Mutex
 }
@@ -265,12 +267,21 @@ func (t *Tray) showMenu() {
 
 // ApplyHotkey registers (or clears) the global shortcut on the UI thread.
 // It rolls back to the previous shortcut if Windows rejects the new one.
+// While the tray is suspended, the new shortcut is remembered and registered
+// after suspension ends.
 func (t *Tray) ApplyHotkey(spec *hotkey.Spec) error {
 	return t.invokeSync(func() error {
 		var next *hotkey.Spec
 		if spec != nil {
 			copySpec := *spec
 			next = &copySpec
+		}
+		if t.suspended.Load() {
+			t.desiredHotkey = next
+			t.hotkeyMu.Lock()
+			t.hotkeyErr = nil
+			t.hotkeyMu.Unlock()
+			return nil
 		}
 		var prev *hotkey.Spec
 		if t.currentHotkey != nil {
@@ -286,11 +297,56 @@ func (t *Tray) ApplyHotkey(spec *hotkey.Spec) error {
 			t.hotkeyMu.Unlock()
 			return err
 		}
+		t.desiredHotkey = next
 		t.hotkeyMu.Lock()
 		t.hotkeyErr = nil
 		t.hotkeyMu.Unlock()
 		return nil
 	})
+}
+
+// SetHotkeySuspended temporarily releases or re-registers the configured
+// shortcut. It is used while a File Explorer window is focused so Explorer's
+// own Ctrl+Shift+C "Copy as path" action still works.
+func (t *Tray) SetHotkeySuspended(suspend bool) error {
+	return t.invokeSync(func() error {
+		if t.suspended.Load() == suspend {
+			return nil
+		}
+		if suspend {
+			if t.currentHotkey != nil {
+				if err := winapi.UnregisterHotKey(t.hwnd, hotkeyID); err != nil {
+					return err
+				}
+				t.currentHotkey = nil
+			}
+			t.suspended.Store(true)
+			return nil
+		}
+
+		t.suspended.Store(false)
+		if t.desiredHotkey == nil {
+			return nil
+		}
+		desired := *t.desiredHotkey
+		if err := winapi.RegisterHotKey(t.hwnd, hotkeyID, desired.Mods|hotkey.ModNoRepeat, desired.VK); err != nil {
+			err = fmt.Errorf("cannot re-register %s: %w", desired.String(), err)
+			t.hotkeyMu.Lock()
+			t.hotkeyErr = err
+			t.hotkeyMu.Unlock()
+			return err
+		}
+		t.currentHotkey = &desired
+		t.hotkeyMu.Lock()
+		t.hotkeyErr = nil
+		t.hotkeyMu.Unlock()
+		return nil
+	})
+}
+
+// HotkeySuspended reports whether the shortcut is currently released.
+func (t *Tray) HotkeySuspended() bool {
+	return t.suspended.Load()
 }
 
 func (t *Tray) replaceHotkey(next *hotkey.Spec) error {

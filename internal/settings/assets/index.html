@@ -223,6 +223,19 @@
           </div>
           <label class="switch"><input type="checkbox" id="startWithWindows"><span></span></label>
         </div>
+        <div class="field-block">
+          <div class="field-label-row">
+            <label class="field-label" for="releaseInput" data-i18n="releaseAppsTitle">Release shortcut for these apps</label>
+            <span class="field-note" data-i18n="releaseAppsNote">process names</span>
+          </div>
+          <p class="field-help" data-i18n="releaseAppsDesc">While one of these executables is foreground, the global shortcut is released so the app's own shortcut can work. Default: explorer.exe.</p>
+          <div class="root-list" id="releaseList"></div>
+          <div class="inline-add">
+            <input type="text" id="releaseInput" placeholder="explorer.exe" autocomplete="off" spellcheck="false">
+            <button type="button" class="btn btn-secondary" id="addReleaseApp" data-i18n="add">Add</button>
+          </div>
+          <p class="field-help" data-i18n="releaseAppsHint">Use the executable name, for example explorer.exe or chrome.exe. The list is matched case-insensitively.</p>
+        </div>
 
         <div class="last-capture">
           <div class="last-capture-head">

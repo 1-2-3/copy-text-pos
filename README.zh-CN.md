@@ -58,6 +58,9 @@ Issue、终端或笔记软件。它会把当前编辑器选区转换成带行号
 ## 功能
 
 - **全局快捷键**：默认 `Ctrl+Shift+C`，可在托盘设置页中直接录制新的组合键。
+- **可配置的快捷键让渡**：用列表指定哪些应用位于前台时释放全局快捷键，默认是
+  `explorer.exe`，因此资源管理器自带的 `Ctrl+Shift+C`“复制文件路径”继续可用；
+  切回编辑器后自动重新注册。
 - **原生 Windows 托盘应用**：单个自包含 `.exe`，不使用 Electron，不需要运行时，
   不常驻浏览器。
 - **VS Code 系列精确范围**：可选伴生扩展直接上报当前文件与选区行号，未保存的
@@ -95,7 +98,9 @@ Issue、终端或笔记软件。它会把当前编辑器选区转换成带行号
 
 > **快捷键冲突：** Windows 的全局快捷键同一时间只能由一个程序注册。如果快捷键
 > 无效，请在设置中更换。部分剪贴板工具使用低级键盘钩子，即使
-> `RegisterHotKey` 成功也可能拦截按键。
+> `RegisterHotKey` 成功也可能拦截按键。对自带 `Ctrl+Shift+C` 动作的应用，把
+> 可执行文件名加入 `releaseHotkeyProcesses`；默认包含 Explorer。列表中的应用
+> 位于前台时应用释放快捷键，切走后重新注册。
 
 ## 编辑器支持
 
@@ -209,7 +214,7 @@ UIA 可以提供控件树、名称、值、选中模式、`TextPattern` 等。�
 辅助功能桥接。即使能数出 UI 文本行，代码折叠、自动换行、Markdown 渲染也会让
 它和源码行号不一致。而路径问题仍然没有解决。
 
-因此 v0.1.3 采用**编辑器原生元数据 + 剪贴板选区 + 源码搜索**的混合方案，并为
+因此 v0.1.5 采用**编辑器原生元数据 + 剪贴板选区 + 源码搜索**的混合方案，并为
 VS Code 系列提供精确的桥接扩展。未来也许会用 UIA 做很窄的辅助判断（例如当前
 焦点是编辑器还是内置终端），但不会把它作为主数据源。
 
@@ -231,6 +236,7 @@ VS Code 系列提供精确的桥接扩展。未来也许会用 UIA 做很窄的�
 | `enableEditorRecents` | `true` | 使用工作区、Vault、最近文件元数据 |
 | `notifications` | `true` | 成功后显示托盘气泡 |
 | `startWithWindows` | `false` | 写入当前用户的启动项 |
+| `releaseHotkeyProcesses` | `["explorer.exe"]` | 这些进程位于前台时释放快捷键 |
 | `maxSearchMs` | `1800` | 兜底源码搜索的时间上限 |
 
 快捷键支持 `Ctrl`/`Control`、`Shift`、`Alt`、`Win`/`Windows`，以及字母、数字、
@@ -308,7 +314,7 @@ VS Code 系列提供精确的桥接扩展。未来也许会用 UIA 做很窄的�
 ```powershell
 git clone <本仓库地址>
 cd copy-text-pos
-.\build.ps1 -Version 0.1.3 -Package
+.\build.ps1 -Version 0.1.5 -Package
 ```
 
 输出：
@@ -316,13 +322,13 @@ cd copy-text-pos
 ```text
 bin\copy-text-pos.exe
 bin\copy-text-pos.exe.sha256
-bin\copy-text-pos-0.1.3-win-x64.zip
+bin\copy-text-pos-0.1.5-win-x64.zip
 ```
 
 带控制台窗口的开发构建（便于调试）：
 
 ```powershell
-.\build.ps1 -Version 0.1.3 -Console -Output bin\copy-text-pos-dev.exe
+.\build.ps1 -Version 0.1.5 -Console -Output bin\copy-text-pos-dev.exe
 ```
 
 测试：

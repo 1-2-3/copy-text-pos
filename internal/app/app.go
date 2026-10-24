@@ -270,6 +270,13 @@ func (a *App) Run() error {
 			a.forceNotify(a.tr("Settings unavailable", "设置页不可用"), a.serverErr.Error())
 		}
 	}()
+	// RegisterHotKey is global and would otherwise steal Explorer's own
+	// Ctrl+Shift+C "Copy as path" shortcut. Poll the foreground window cheaply
+	// and release our hotkey only while Explorer is active.
+	go func() {
+		time.Sleep(300 * time.Millisecond)
+		a.watchExplorerForeground()
+	}()
 	err := a.tray.Run()
 	if a.server != nil {
 		_ = a.server.Close()
@@ -277,6 +284,50 @@ func (a *App) Run() error {
 	a.log.Info("message loop stopped")
 	a.log.Close()
 	return err
+}
+
+func (a *App) watchExplorerForeground() {
+	ticker := time.NewTicker(75 * time.Millisecond)
+	defer ticker.Stop()
+	var lastHWND winapi.HWND
+	foregroundProcess := ""
+	for {
+		if a.quit.Load() {
+			return
+		}
+		hwnd := winapi.ForegroundWindow()
+		if hwnd != lastHWND {
+			lastHWND = hwnd
+			foregroundProcess = ""
+			if hwnd != 0 {
+				pid := winapi.WindowProcessID(winapi.RootAncestor(hwnd))
+				if process, err := winapi.ProcessInfo(pid); err == nil {
+					foregroundProcess = process.Name
+				}
+			}
+		}
+		cfg := a.cfg.Load()
+		wantSuspended := cfg != nil && cfg.ReleasesHotkeyFor(foregroundProcess)
+		if wantSuspended != a.tray.HotkeySuspended() {
+			if err := a.tray.SetHotkeySuspended(wantSuspended); err != nil {
+				a.log.Error("set hotkey suspension=%v: %v", wantSuspended, err)
+				if !wantSuspended {
+					a.forceNotify(
+						a.tr("Shortcut unavailable", "快捷键不可用"),
+						err.Error(),
+					)
+				} else {
+					// Retry on the next tick; unregistration rarely fails.
+					lastHWND = 0
+				}
+			} else if wantSuspended {
+				a.log.Info("hotkey paused while %s is foreground", foregroundProcess)
+			} else {
+				a.log.Info("hotkey resumed")
+			}
+		}
+		<-ticker.C
+	}
 }
 
 // Quit asks the tray to close.
@@ -452,6 +503,13 @@ func (a *App) CaptureCurrent() {
 	cfg := a.cfg.Load()
 	if cfg == nil {
 		a.finishError(started, errors.New("configuration is unavailable"))
+		return
+	}
+	// The foreground watcher should already have released the hotkey, but there
+	// is a short race after switching windows. Never steal the native shortcut
+	// of a configured passthrough process or overwrite its clipboard.
+	if cfg.ReleasesHotkeyFor(w.Process.Name) {
+		a.log.Info("ignored capture because %s is configured for shortcut passthrough", w.Process.Name)
 		return
 	}
 	a.log.Info("capture start window=%q process=%s pid=%d hwnd=0x%X", logTitle(w.Title), w.Process.Name, w.PID, w.Handle)

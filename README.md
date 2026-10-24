@@ -61,6 +61,10 @@ numbers, and formatting the result. Copy Text Pos reduces it to one keystroke.
 
 - **Global hotkey** — default `Ctrl+Shift+C`, configurable by recording a new
   combination in the tray settings page.
+- **Configurable passthrough apps** — list executables for which the global
+  shortcut should be released. It defaults to `explorer.exe`, so Explorer's own
+  `Ctrl+Shift+C` “Copy as path” keeps working. The shortcut is re-registered
+  when you switch back to an editor.
 - **Native Windows tray app** — one self-contained `.exe`, no Electron, no
   runtime, no background browser.
 - **Exact VS Code-family ranges** — optional companion extension reports active
@@ -105,7 +109,10 @@ Logs (which never contain selected text) go to:
 > **Hotkey conflicts:** Windows gives global hotkeys to one application at a
 > time. If the shortcut does not work, change it in Settings. Some clipboard
 > tools use low-level keyboard hooks and can interfere even when
-> `RegisterHotKey` succeeds.
+> `RegisterHotKey` succeeds. For apps with their own `Ctrl+Shift+C` action, add
+> their executable names to `releaseHotkeyProcesses`; Explorer is included by
+> default. While one of those apps is foreground, Copy Text Pos releases the
+> hotkey and re-registers it when you switch away.
 
 ## Editor support
 
@@ -232,7 +239,7 @@ IDEs use their own accessibility bridge. Counting UI text lines is not the same
 as counting source lines when the editor folds code, wraps lines, or renders
 Markdown. And UIA still does not tell us the file path.
 
-So v0.1.3 uses a hybrid of **editor-native metadata + clipboard selection +
+So v0.1.5 uses a hybrid of **editor-native metadata + clipboard selection +
 source search**, with an optional exact bridge for VS Code derivatives. UIA
 might be added later for narrow jobs such as classifying the focused control
 (editor vs. integrated terminal), but it is not a good foundation for the whole
@@ -256,6 +263,7 @@ Open **tray icon → Settings…**. The page is served locally at a random
 | `enableEditorRecents` | `true` | Use workspace/vault/recent-file metadata |
 | `notifications` | `true` | Tray balloon after successful copies |
 | `startWithWindows` | `false` | Add a per-user Run registry entry |
+| `releaseHotkeyProcesses` | `["explorer.exe"]` | Release the shortcut while any of these processes is foreground |
 | `maxSearchMs` | `1800` | Upper bound for fallback source searches |
 
 The shortcut parser accepts `Ctrl`/`Control`, `Shift`, `Alt`, `Win`/`Windows`
@@ -339,7 +347,7 @@ Requirements:
 ```powershell
 git clone <this repository>
 cd copy-text-pos
-.\build.ps1 -Version 0.1.3 -Package
+.\build.ps1 -Version 0.1.5 -Package
 ```
 
 Outputs:
@@ -347,13 +355,13 @@ Outputs:
 ```text
 bin\copy-text-pos.exe
 bin\copy-text-pos.exe.sha256
-bin\copy-text-pos-0.1.3-win-x64.zip
+bin\copy-text-pos-0.1.5-win-x64.zip
 ```
 
 For a build with a console window (useful for debugging):
 
 ```powershell
-.\build.ps1 -Version 0.1.3 -Console -Output bin\copy-text-pos-dev.exe
+.\build.ps1 -Version 0.1.5 -Console -Output bin\copy-text-pos-dev.exe
 ```
 
 Tests:
