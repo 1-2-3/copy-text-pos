@@ -4,11 +4,11 @@
   Build Copy Text Pos for Windows x64.
 .EXAMPLE
   .\build.ps1
-  .\build.ps1 -Version 0.1.7 -Package
+  .\build.ps1 -Version 0.1.8 -Package
   .\build.ps1 -Console -Output bin\copy-text-pos-dev.exe
 #>
 param(
-  [string]$Version = "0.1.7",
+  [string]$Version = "0.1.8",
   [string]$Output = "bin\copy-text-pos.exe",
   [switch]$Console,
   [switch]$Package,

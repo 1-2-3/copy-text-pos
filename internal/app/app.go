@@ -246,10 +246,23 @@ func (a *App) handleMenuCommand(id int) {
 			a.forceNotify("Copy Text Pos", err.Error())
 		}
 	case commandAbout:
-		a.forceNotify("Copy Text Pos", version.Full())
+		a.showAbout()
 	case commandExit:
 		a.Quit()
 	}
+}
+
+func (a *App) showAbout() {
+	text := version.Full()
+	if a.chinese {
+		text += "\n\nMIT 许可证"
+	} else {
+		text += "\n\nMIT License"
+	}
+	// A native dialog is explicit and works even when tray balloons are
+	// suppressed by Focus Assist or notification settings. MB_SETFOREGROUND
+	// keeps it in front after the tray menu closes.
+	winapi.MessageBox("Copy Text Pos", text, 0x00000040|0x00010000)
 }
 
 // Run blocks on the Windows message loop.

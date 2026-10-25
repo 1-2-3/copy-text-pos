@@ -7,6 +7,14 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-10-25
+
+### Fixed
+
+- The tray **About** item now opens a native About dialog with the version,
+  commit and build metadata. It no longer depends on a tray balloon, which can
+  be suppressed by Focus Assist or Windows notification settings.
+
 ## [0.1.7] - 2026-10-24
 
 ### Fixed
