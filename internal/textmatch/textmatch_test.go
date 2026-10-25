@@ -117,6 +117,18 @@ func TestMarkdownTableCopy(t *testing.T) {
 	}
 }
 
+func TestMarkdownIgnoresInsertedBlankLines(t *testing.T) {
+	content := "# Head\n\n| A | B |\n|---|---|\n| x | 1 |\n\n1. one\n2. two\n3. three\n"
+	selection := "# Head\n\n| A   | B   |\n| --- | --- |\n| x   | 1   |\n\n1. one\n\n2. two\n\n3. three"
+	m, err := FindSingle(content, selection, Options{Markdown: true}, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.StartLine != 1 || m.EndLine != 9 {
+		t.Fatalf("unexpected match: %+v", m)
+	}
+}
+
 func TestNotFound(t *testing.T) {
 	if _, err := FindAll("abc\ndef\n", "not present", Options{}); err == nil {
 		t.Fatal("expected error")

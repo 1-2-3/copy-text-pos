@@ -148,7 +148,14 @@ func lineMatches(fileLines, selectedRaw []string, markdown bool) []Match {
 		if markdown && isMarkdownTableSeparator(line) {
 			continue
 		}
-		selected = append(selected, normalizeLine(line, markdown))
+		normalized := normalizeLine(line, markdown)
+		// Typora inserts blank lines between ordered-list items that are
+		// adjacent in the source. Blank lines do not carry selectable text, so
+		// ignoring them keeps the non-blank source lines aligned.
+		if markdown && normalized == "" {
+			continue
+		}
+		selected = append(selected, normalized)
 	}
 	// Drop leading/trailing blank lines created by the clipboard.
 	for len(selected) > 0 && selected[0] == "" {
@@ -170,8 +177,12 @@ func lineMatches(fileLines, selectedRaw []string, markdown bool) []Match {
 		if markdown && isMarkdownTableSeparator(line) {
 			continue
 		}
+		normalized := normalizeLine(line, markdown)
+		if markdown && normalized == "" {
+			continue
+		}
 		normalizedFile = append(normalizedFile, sourceLine{
-			text: normalizeLine(line, markdown),
+			text: normalized,
 			line: i + 1,
 		})
 	}

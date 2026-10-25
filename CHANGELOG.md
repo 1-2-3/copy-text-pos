@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-10-25
+
+### Fixed
+
+- Markdown matching now ignores blank lines that Typora inserts between
+  adjacent ordered-list items. Large selections that mix tables, code blocks
+  and lists, such as a 92-line range, now map back to the source range instead
+  of failing with “found the file but not the selected text”.
+
 ## [0.1.8] - 2026-10-25
 
 ### Fixed

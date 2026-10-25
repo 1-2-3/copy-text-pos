@@ -149,8 +149,10 @@ file path.
 - **Range:** selected text is searched in the Markdown source, with the same
   rendered-Markdown caveat as Obsidian. Typora copies tables as padded Markdown;
   table separator rows and column padding are normalized, so whole-table and
-  row-range selections map back to their source lines.
-- **Fallback:** add the document folder to **Search roots**.
+  row-range selections map back to their source lines. Match normalization also
+  ignores blank lines Typora inserts between adjacent ordered-list items.
+- **Fallback:** add the document folder to **Search roots** when rendered
+  Markdown differs too much.
 - **Unsaved documents:** save first; an unsaved Typora buffer has no stable
   source path for the fallback search.
 
